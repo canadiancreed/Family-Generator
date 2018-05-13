@@ -9,8 +9,10 @@ public class NameGenerator {
     }
 
     public static String generateFirstName(final Gender gender) {
+        return "";
     }
 
     public static String generalLastName(final Gender gender) {
+        return "";
     }
 }
