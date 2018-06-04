@@ -38,23 +38,27 @@ public class PersonUtil {
     public static void createFamily(final long id) {
     }
 
-    public static Person createSpouse(final Person person, final Integer manualMarriageYear) {
+    public static Person createSpouse(final Person spouseObject, final Integer manualMarriageYear) {
         Person currentSpouse = new Person();
 
-        final int marriedYear = manualMarriageYear == 0 ? getMarriageYear(person.getGender()) : manualMarriageYear;
-        final int marriedAge = 0;
+        final int marriedYear = manualMarriageYear == 0 ? getMarriageYear(spouseObject.getGender()) : manualMarriageYear;
+
+        int marriedAge = 0;
 
         currentSpouse.setId(PersonUtil.generateRandomID());
-        currentSpouse.setGender(PersonUtil.getOppositeGender(person.getGender()));
-        currentSpouse.setFName(NameGenerator.generateFirstName(person.getGender()));
-        currentSpouse.setLName(NameGenerator.generalLastName(person.getGender()));
+        currentSpouse.setGender(PersonUtil.getOppositeGender(spouseObject.getGender()));
+        currentSpouse.setFName(NameGenerator.generateFirstName(spouseObject.getGender()));
+        currentSpouse.setLName(NameGenerator.generalLastName(spouseObject.getGender()));
         currentSpouse.setMoniker("");
         currentSpouse.setBYear(getBirthYear(marriedYear,currentSpouse.getGender()));
-//        currentSpouse.setDYear(getDeathYear(person.getBYear(),currentSpouse.getGender()));
-//        currentSpouse.setFatherID(0);
-//        currentSpouse.setMotherID(0);
 
+        marriedAge = marriedYear - currentSpouse.getBYear();
 
+        currentSpouse.setDYear(getDeathYear(marriedAge));
+        currentSpouse.setFatherID(0);
+        currentSpouse.setMotherID(0);
+
+        return currentSpouse;
     }
 
     /**
@@ -101,31 +105,33 @@ public class PersonUtil {
         return birthYear;
     }
 
-    private static Integer getDeathYear(final Integer marriedYear, final Integer marriedAge) {
+    /**
+     * Get the age that this person will die
+     *
+     * @param marriedAge
+     * @return
+     */
+    private static Integer getDeathYear(final Integer marriedAge) {
         Integer deathAge = 0;
+        byte firstRandomRoll = rollDice(20);
+        byte secondRandomRoll = rollDice(20);
 
-        var temp1a = rollD(20);
-        var temp1b = rollD(20);
-        var temp1;
-        (temp1a < temp1b) ? temp1=temp1a : temp1=temp1b; // temp1 is the low of 2d20
+        final byte getLowerRandomRoll = firstRandomRoll < secondRandomRoll ? firstRandomRoll : secondRandomRoll;
 
-        var temp2=rollD(8);
-
-        var dage;
-        if (temp2<5) {  // 50% dies as a child or teenager
-            dage=temp1;
+        if (secondRandomRoll < 5) {  // 50% dies as a child or teenager
+            deathAge = Integer.valueOf(getLowerRandomRoll);
         } // this is to shape the prob curve of deaths
-        else if (temp2<7) {
-            deathAge=temp1a+20;  // 25% die in their 20-30's
+        else if (secondRandomRoll < 7) {
+            deathAge = firstRandomRoll+20;  // 25% die in their 20-30's
         }
-        else if (temp2==7) { // 12.5% die in their 40-50's
-            deathAge=temp1a+40;
+        else if (secondRandomRoll == 7) { // 12.5% die in their 40-50's
+            deathAge = firstRandomRoll+40;
         }
-        else if (temp2==8) { // 12.5% die in their 60-70's
-            deathAge=temp1a+60;
+        else if (secondRandomRoll == 8) { // 12.5% die in their 60-70's
+            deathAge = firstRandomRoll+60;
         }
 
-        if (deathAge && marriedAge) {  // Generating spouse, so should be alive when married...
+        if (deathAge == marriedAge) {  // Generating spouse, so should be alive when married...
             while (deathAge < marriedAge) {   // if died before married, set to marriage.
                 deathAge = marriedAge;
             }

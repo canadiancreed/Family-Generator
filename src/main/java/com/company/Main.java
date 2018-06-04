@@ -14,7 +14,7 @@ public class Main {
     public static void main(final String[] args) {
         initialize(args);
 
-        PersonUtil.createSpouse(currentPerson);
+        PersonUtil.createSpouse(currentPerson, currentPersonMarriedYear);
         //System.out.println(familyTree);
     }
 
