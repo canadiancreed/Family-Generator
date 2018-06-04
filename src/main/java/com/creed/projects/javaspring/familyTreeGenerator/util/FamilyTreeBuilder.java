@@ -66,7 +66,7 @@ public class FamilyTreeBuilder {
             addSpouses();
             createChildren();
 
-            processChildrenIds = futureChildrenIDs;
+            processChildrenIds = new ArrayList<>(futureChildrenIDs);
             futureChildrenIDs.clear();
         }
     }
@@ -156,6 +156,6 @@ public class FamilyTreeBuilder {
     }
 
     public boolean reachedEndYear() {
-        return currentYear >= stopAtYear;
+        return currentYear <= stopAtYear;
     }
 }
