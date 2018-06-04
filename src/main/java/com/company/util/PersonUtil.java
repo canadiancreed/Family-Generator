@@ -38,25 +38,25 @@ public class PersonUtil {
     public static void createFamily(final long id) {
     }
 
-    public static Person createSpouse(final Person person, final Integer manualMarriageYear) {
+    public static Person createSpouse(final Person spouseObject, final Integer manualMarriageYear) {
         Person currentSpouse = new Person();
 
-        final int marriedYear = manualMarriageYear == 0 ? getMarriageYear(person.getGender()) : manualMarriageYear;
+        final int marriedYear = manualMarriageYear == 0 ? getMarriageYear(spouseObject.getGender()) : manualMarriageYear;
 
         int marriedAge = 0;
 
         currentSpouse.setId(PersonUtil.generateRandomID());
-        currentSpouse.setGender(PersonUtil.getOppositeGender(person.getGender()));
-        currentSpouse.setFName(NameGenerator.generateFirstName(person.getGender()));
-        currentSpouse.setLName(NameGenerator.generalLastName(person.getGender()));
+        currentSpouse.setGender(PersonUtil.getOppositeGender(spouseObject.getGender()));
+        currentSpouse.setFName(NameGenerator.generateFirstName(spouseObject.getGender()));
+        currentSpouse.setLName(NameGenerator.generalLastName(spouseObject.getGender()));
         currentSpouse.setMoniker("");
         currentSpouse.setBYear(getBirthYear(marriedYear,currentSpouse.getGender()));
 
         marriedAge = marriedYear - currentSpouse.getBYear();
 
         currentSpouse.setDYear(getDeathYear(marriedAge));
-//        currentSpouse.setFatherID(0);
-//        currentSpouse.setMotherID(0);
+        currentSpouse.setFatherID(0);
+        currentSpouse.setMotherID(0);
 
         return currentSpouse;
     }
