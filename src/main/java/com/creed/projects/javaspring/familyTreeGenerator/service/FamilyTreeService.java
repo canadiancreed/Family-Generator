@@ -1,8 +1,10 @@
-package com.company.domain;
+package com.creed.projects.javaspring.familyTreeGenerator.service;
+
+import com.creed.projects.javaspring.familyTreeGenerator.domain.Person;
 
 import java.util.LinkedHashMap;
 
-public class FamilyTree {
+public class FamilyTreeService {
 
     private static LinkedHashMap<Integer, Person> familyTree = new LinkedHashMap<>();
 

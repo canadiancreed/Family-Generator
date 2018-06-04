@@ -1,6 +1,6 @@
-package com.company.domain;
+package com.creed.projects.javaspring.familyTreeGenerator.domain;
 
-import com.company.util.Gender;
+import com.creed.projects.javaspring.familyTreeGenerator.common.Gender;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -15,7 +15,8 @@ public class Person {
     private int dYear;
     private int fatherID;
     private int motherID;
-    private ArrayList<LinkedHashMap<Integer, Integer>> spouseArray;
+    private LinkedHashMap<Integer, Integer> spouseArray;
+    private ArrayList<Integer> childrenArray;
 
     public Person() {
         this.id = -1;
@@ -27,12 +28,13 @@ public class Person {
         this.dYear = 0;
         this.fatherID = 0;
         this.motherID = 0;
-        this.spouseArray = new ArrayList<LinkedHashMap<Integer, Integer>>();
+        this.spouseArray = new LinkedHashMap<>();
+        this.childrenArray = new ArrayList<>();
     }
 
     public Person(final int id, final Gender gender, final String fName, final String lName, final String moniker,
                   final int bYear, final int dYear, final int fatherID, final int motherID,
-                  final ArrayList<LinkedHashMap<Integer, Integer>> spouseArray) {
+                  final LinkedHashMap<Integer, Integer> spouseArray, final ArrayList<Integer> childrenArray) {
         this.id = id;
         this.gender = gender;
         this.fName = fName;
@@ -43,6 +45,7 @@ public class Person {
         this.fatherID = fatherID;
         this.motherID = motherID;
         this.spouseArray = spouseArray;
+        this.childrenArray = childrenArray;
     }
 
     public int getId() { return id; }
@@ -54,7 +57,8 @@ public class Person {
     public int getDYear() { return dYear; }
     public int getFatherID() { return fatherID; }
     public int getMotherID() { return motherID; }
-    public ArrayList<LinkedHashMap<Integer, Integer>> getSpouseArray() { return spouseArray; }
+    public LinkedHashMap<Integer, Integer> getSpouseArray() { return spouseArray; }
+    public ArrayList<Integer> getChildredArray() { return childrenArray; }
 
     public void setId(final int id) { this.id = id; }
     public void setGender(final Gender gender) { this.gender = gender; }
@@ -65,7 +69,8 @@ public class Person {
     public void setDYear(final int dYear) { this.dYear = dYear; }
     public void setFatherID(final int fatherID) { this.fatherID = fatherID; }
     public void setMotherID(final int motherID) { this.motherID = motherID; }
-    public void setSpouseArray(final ArrayList<LinkedHashMap<Integer, Integer>> spouseArray) { this.spouseArray = spouseArray; }
+    public void setSpouseArray(final LinkedHashMap<Integer, Integer> spouseArray) { this.spouseArray = spouseArray; }
+    public void setChildredArray(final ArrayList<Integer> childredArray) { this.childrenArray = childredArray; }
 
     @Override
     public String toString() {
@@ -80,6 +85,7 @@ public class Person {
         sb.append(", fatherID=").append(fatherID);
         sb.append(", motherID=").append(motherID);
         sb.append(", spouseArray=").append(spouseArray);
+        sb.append(", childrenArray=").append(childrenArray);
         sb.append('}');
         return sb.toString();
     }
