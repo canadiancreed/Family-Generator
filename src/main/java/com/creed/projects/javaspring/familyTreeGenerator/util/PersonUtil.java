@@ -213,7 +213,7 @@ public class PersonUtil {
     }
 
     public static Integer getMarriageYear(final Gender gender) {
-       return Math.abs(getBirthYear(0,gender));
+        return Math.abs(getBirthYear(0 ,gender));
     }
 
     /**

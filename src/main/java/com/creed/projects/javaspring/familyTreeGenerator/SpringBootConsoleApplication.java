@@ -38,15 +38,6 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         Integer applicationStatusCode = 0;
         FamilyTreeBuilder ftb = new FamilyTreeBuilder(pzc, ftc);
 
-        ftb.createFamily(true);
-
-        //Is there any children IDs to process?
-        //If so, loop through them and see if they should have spouse and children created
-        //If so, create and populate childrenID with their children
-        while (ftb.currentChildrenIDCount() > 0 && ftb.reachedEndYear()) {
-            ftb.createFamily(false);
-        }
-
         //Check if death year is greater then current year
         //If it is, take IDs for children and build the next generation
         //Otherwise write to file and end program
