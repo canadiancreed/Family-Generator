@@ -4,21 +4,21 @@ import com.creed.projects.javaspring.familyTreeGenerator.common.Gender;
 import com.creed.projects.javaspring.familyTreeGenerator.config.FamilyTreeConfiguration;
 import com.creed.projects.javaspring.familyTreeGenerator.config.PersonZeroConfiguration;
 import com.creed.projects.javaspring.familyTreeGenerator.domain.Person;
-import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-@Component
+import static com.creed.projects.javaspring.familyTreeGenerator.util.PersonUtil.createSpouse;
+
+/**
+ * This class builds and creates the entire family tree
+ */
+
 public class FamilyTreeBuilder {
 
-    private int currentYear;
-    private int stopAtYear;
+    private Integer currentYear;
+    private Integer stopAtYear;
 
     private int currentPersonId;
-    private int spousePersonId;
-    private ArrayList<Integer> processChildrenIds = new ArrayList<>();
-    private ArrayList<Integer> futureChildrenIDs = new ArrayList<>();
 
     private LinkedHashMap<Integer, Person> currentFamilyTreeCollection = new LinkedHashMap<>();
 
@@ -26,71 +26,22 @@ public class FamilyTreeBuilder {
     private final PersonZeroConfiguration pzc;
     private final FamilyTreeConfiguration ftc;
 
+
     public FamilyTreeBuilder(final PersonZeroConfiguration pzc, final FamilyTreeConfiguration ftc) {
+
         this.pzc = pzc;
         this.ftc = ftc;
 
-        createFamily(true);
+        createPersonZero();
+        addSpouses();
+        //createPersonZero
+        //create spouse for personZero
 
-        //Is there any children IDs to process?
-        //If so, loop through them and see if they should have spouse and children created
-        //If so, create and populate childrenID with their children
-//        while (currentChildrenIDCount() > 0 && reachedEndYear()) {
-
-//        for (int i = 0; i < 1; i++) {
-            createFamily(false);
-//        }
     }
 
-    private void init() {
-        this.currentPersonId = 0;
-        this.spousePersonId = 0;
-    }
-
-    public void createFamily(final boolean initialFamily) {
-
-        if (!initialFamily) {
-            for (int i = 0; i < processChildrenIds.size(); i++) {
-                //Saves multiple searching of the array
-                init();
-
-                final Person currentPersonObject = currentFamilyTreeCollection.get(processChildrenIds.get(i));
-
-                currentPersonId = currentPersonObject.getId();
-
-                //If this person isn't a bachelor and is older then 11
-                if (!isBachelor() && (currentPersonObject.getDYear() - currentPersonObject.getBYear()) > 11) {
-                    //Having kids when they're dead young. Needs a check
-                    //addSpouses(currentPersonObject.getBYear());
-//                    final Integer marriageYear = PersonUtil.getMarriageYear(currentPersonObject.getGender());
-//
-//                    if (marriageYear < currentPersonObject.getDYear()) {
-                        addSpouses(0);
-                        createChildren();
-//                    }
-
-
-                }
-
-                processChildrenIds.remove(i);
-            }
-
-            //Update with new generation of children
-            if (currentChildrenIDCount() == 0) {
-                processChildrenIds = new ArrayList<>(futureChildrenIDs);
-                futureChildrenIDs.clear();
-            }
-        } else {
-            //Create root family
-            createPersonZero();
-            addSpouses(0);
-            createChildren();
-
-            processChildrenIds = new ArrayList<>(futureChildrenIDs);
-            futureChildrenIDs.clear();
-        }
-    }
-
+    /**
+     *  Creates person zero, the root of this family tree
+     */
     public void createPersonZero() {
         Person initialPersonObject = new Person();
 
@@ -112,83 +63,54 @@ public class FamilyTreeBuilder {
         stopAtYear = pzc.getCurrentYear();
     }
 
-    public void addSpouses(final Integer marriageYear) {
+    public void addSpouses() {
         final Person initialPersonObject = currentFamilyTreeCollection.get(currentPersonId);
 
-        LinkedHashMap<Integer, Integer> spousePersonObjectSpouseArray = new LinkedHashMap<>();
+        int marriedYear = 0;
 
-        Integer spouseMarriedYear = 0;
-
-        if (marriageYear == 0) {
-            spouseMarriedYear = pzc.getMarriageYear();
-        } else {
-            spouseMarriedYear = marriageYear;
+        //todo - Test to see if this check for initial start couple can be broken?
+        if (initialPersonObject.getFatherID() == 0 & initialPersonObject.getFatherID() == 0) {
+            marriedYear = pzc.getMarriageYear();
+//        } else {
+//
         }
 
-        //Create a new spouse instance.
+        //Create temp array of spouseIDs
+        LinkedHashMap<Integer, Integer> spouseIDArray = new LinkedHashMap<>();
+        Person spousePersonObject = null;
+        boolean marriedAgain = true;
 
-        final Person spousePersonObject = PersonUtil.createSpouse(initialPersonObject, spouseMarriedYear);
+        //Put this in a loop that checks if the spouseDeath date < initial person date, and loops if needed
+        while (marriedAgain == true) {
+            spousePersonObject = createSpouse(currentFamilyTreeCollection.get(initialPersonObject.getId()), marriedYear);
 
-        final LinkedHashMap<Integer, Integer> tempSpousePersonSpouseArray = spousePersonObject.getSpouseArray();
+            spouseIDArray.put(spousePersonObject.getId(), marriedYear);
 
-        spousePersonObjectSpouseArray.put(spousePersonObject.getId(), tempSpousePersonSpouseArray.get(initialPersonObject.getId()));
-        initialPersonObject.setSpouseArray(spousePersonObjectSpouseArray);
+            if (spousePersonObject.getDYear() < initialPersonObject.getDYear()) {
+                //get mourningYears
+                int aaa = PersonUtil.calculateYearsTillReMarriage(spousePersonObject.getDYear());
+            }
+        }
 
-        spousePersonId = spousePersonObject.getId();
+        //end of loop
+
+        initialPersonObject.setSpouseArray(spouseIDArray);
+
+        currentPersonId = spousePersonObject.getId();
 
         currentFamilyTreeCollection.put(spousePersonObject.getId(), spousePersonObject);
+        currentFamilyTreeCollection.put(initialPersonObject.getId(), initialPersonObject);
 
-        if (currentYear < spousePersonObject.getBYear()) {
-            currentYear = spousePersonObject.getBYear();
-        }
+
+
+//        if (currentYear < spousePersonObject.getBYear()) { currentYear = spousePersonObject.getBYear(); }
     }
 
     public void createChildren() {
-        final Person initialPersonObject = currentFamilyTreeCollection.get(currentPersonId);
-        final Person spousePersonObject = currentFamilyTreeCollection.get(spousePersonId);
 
-        Person femaleSpouseObject = null;
-        Person maleSpouseObject = null;
-
-        if (initialPersonObject.getGender().equals("FEMALE")) {
-            femaleSpouseObject = initialPersonObject;
-            maleSpouseObject = spousePersonObject;
-        } else {
-            maleSpouseObject = initialPersonObject;
-            femaleSpouseObject = spousePersonObject;
-        }
-
-        final ArrayList<Person> childrenArray = PersonUtil.createChildren(maleSpouseObject, femaleSpouseObject);
-        final ArrayList<Integer> currentChildrenIDList = new ArrayList<>();
-
-        for (int i = 0; i < childrenArray.size(); i++) {
-            currentChildrenIDList.add(childrenArray.get(i).getId());
-
-            currentFamilyTreeCollection.put(childrenArray.get(i).getId(), childrenArray.get(i));
-        }
-
-        initialPersonObject.setChildredArray(currentChildrenIDList);
-        spousePersonObject.setChildredArray(currentChildrenIDList);
-
-        futureChildrenIDs.addAll(currentChildrenIDList);
-
-        currentFamilyTreeCollection.put(currentPersonId, initialPersonObject);
-        currentFamilyTreeCollection.put(spousePersonId, spousePersonObject);
     }
 
     public LinkedHashMap<Integer, Person> returnCurrentFamilyTreeCollection() {
         return currentFamilyTreeCollection;
-    }
-
-    public int currentChildrenIDCount() {
-        return processChildrenIds.size();
-    }
-
-    public boolean isBachelor() {
-        return PersonUtil.rollDice(100) <= ftc.getChanceIsBachelor();
-    }
-
-    public boolean reachedEndYear() {
-        return currentYear <= stopAtYear;
     }
 }

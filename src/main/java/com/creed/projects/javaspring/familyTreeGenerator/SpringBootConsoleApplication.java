@@ -37,11 +37,11 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
 
         Integer applicationStatusCode = 0;
         FamilyTreeBuilder ftb = new FamilyTreeBuilder(pzc, ftc);
-
-        //Check if death year is greater then current year
-        //If it is, take IDs for children and build the next generation
-        //Otherwise write to file and end program
-
+//
+//        //Check if death year is greater then current year
+//        //If it is, take IDs for children and build the next generation
+//        //Otherwise write to file and end program
+//
         for (Object value : ftb.returnCurrentFamilyTreeCollection().values()) {
             System.out.println(value.toString());
         }
