@@ -1,4 +1,4 @@
-package com.company.util;
+package com.creed.projects.javaspring.familyTreeGenerator.common;
 
 public enum Gender {
 
