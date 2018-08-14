@@ -65,6 +65,17 @@ public class PersonUtil {
         return birthYear;
     }
 
+    /**
+     * Calculate Death Year by marriedYear and marriedAge
+     *
+     * The original breakdown was 50% dead at marriedAge, 12.5% for the rest. This leaves for a LOT of dead the same year they're married
+     *
+     * Revised makes it so 75% is random + 20 or less instead, removing 50% dead at married Age
+     *
+     * @param marriedYear
+     * @param marriedAge
+     * @return
+     */
     public static Integer generateDeathYear(final int marriedYear, final int marriedAge) {
 
         final int temporaryOne = rollDice(20);
@@ -77,9 +88,19 @@ public class PersonUtil {
         int deathAge = 0;
 
         //Odds of death at age x
-        if (deathChancePercentage < 5) {
-            deathAge = randomAge;
-        } else if (deathChancePercentage < 7) {
+//        if (deathChancePercentage < 5) {
+//            deathAge = randomAge;
+//        } else if (deathChancePercentage < 7) {
+//            deathAge = randomAge + 20;
+//        } else if (deathChancePercentage == 7) {
+//            deathAge = randomAge + 40;
+//        } else if (deathChancePercentage == 8) {
+//            deathAge = randomAge + 60;
+//        } else {
+//            //throw Exzception
+//        }
+
+        if (deathChancePercentage < 7) {
             deathAge = randomAge + 20;
         } else if (deathChancePercentage == 7) {
             deathAge = randomAge + 40;

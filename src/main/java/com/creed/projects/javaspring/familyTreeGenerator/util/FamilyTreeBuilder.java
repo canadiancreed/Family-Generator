@@ -79,6 +79,7 @@ public class FamilyTreeBuilder {
         LinkedHashMap<Integer, Integer> spouseIDArray = new LinkedHashMap<>();
         Person spousePersonObject = null;
         boolean marriedAgain = true;
+        int newMarriedYear = 0;
 
         //Put this in a loop that checks if the spouseDeath date < initial person date, and loops if needed
         while (marriedAgain == true) {
@@ -88,7 +89,13 @@ public class FamilyTreeBuilder {
 
             if (spousePersonObject.getDYear() < initialPersonObject.getDYear()) {
                 //get mourningYears
-                int aaa = PersonUtil.calculateYearsTillReMarriage(spousePersonObject.getDYear());
+                newMarriedYear = PersonUtil.calculateYearsTillReMarriage(spousePersonObject.getDYear());
+
+                marriedYear = newMarriedYear;
+
+                currentFamilyTreeCollection.put(spousePersonObject.getId(), spousePersonObject);
+            } else {
+                marriedAgain = false;
             }
         }
 
