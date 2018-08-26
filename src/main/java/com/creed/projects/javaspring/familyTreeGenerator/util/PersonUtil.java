@@ -43,7 +43,7 @@ public class PersonUtil {
         return spousePersonObject;
     }
 
-    public static Person createChild(final int fatherID, final int motherID) {
+    public static Person createChild(final int fatherID, final int motherID, final int birthYear) {
         Person childPersonObject = new Person();
 
         childPersonObject.setId(PersonUtil.generateRandomID());
@@ -51,7 +51,7 @@ public class PersonUtil {
         childPersonObject.setLName("");
         childPersonObject.setMoniker("");
         childPersonObject.setGender(PersonUtil.getRandomGender());
-        childPersonObject.setBYear(PersonUtil.generateBirthYear(0, childPersonObject.getGender()));
+        childPersonObject.setBYear(birthYear);
         childPersonObject.setDYear(0);
 
         childPersonObject.setFatherID(fatherID);
@@ -67,7 +67,7 @@ public class PersonUtil {
         // women (who are likely to produce progeny) marry from age 13-21
         int marriedAge = rollDice(9) + 12;
 
-        if (gender.equals("MALE")) {
+        if ("MALE".equals(gender)) {
             for (int i = 0; i < 5; i++) {
                 marriedAge += rollDice(4) - 1;
             }

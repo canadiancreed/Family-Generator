@@ -5,6 +5,7 @@ import com.creed.projects.javaspring.familyTreeGenerator.config.FamilyTreeConfig
 import com.creed.projects.javaspring.familyTreeGenerator.config.PersonZeroConfiguration;
 import com.creed.projects.javaspring.familyTreeGenerator.domain.Person;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import static com.creed.projects.javaspring.familyTreeGenerator.util.PersonUtil.createChild;
@@ -144,68 +145,28 @@ public class FamilyTreeBuilder {
 
         int yearsMarried = 0;
 
+        ArrayList<Integer> childIDArray = new ArrayList<>();
+
         while (yearsMarried <= numberOfYearsMarried) {
             if (rollDice(100) <= PersonUtil.getFertilityPercentage(ageOfSpouseWhenMarried + yearsMarried)) {
 
                 final int birthYear = person.getSpouseArray().get(spouse.getId()) + yearsMarried;
 
-                createChild(fatherID, motherID);
+                final Person childPersonObject = createChild(fatherID, motherID, birthYear);
 
-                //todo - left off here
+                childIDArray.add(childPersonObject.getId());
+
+                currentFamilyTreeCollection.put(childPersonObject.getId(), childPersonObject);
             }
 
             yearsMarried++;
         }
 
-//        var mend;  // year marriage ends -- no divorce for now...
-//        (person.dyear < spouse.dyear) ? mend=person.dyear : mend=spouse.dyear;
-//
-//        var mspan; // number of years married
-//        mspan = mend - person.myear;
-//
-//        var fertstart; // age of woman at time of marriage
-//        (person.gender=="F") ? fertstart=person.mage : fertstart=spouse.mage;
-//
-//        var newcolor=parseInt(spouse.gencolor)+1;
-//        if (newcolor==14){newcolor=1;}
-//
-//        var yom=0;  // years of marriage
-//        while (yom <= mspan) {
-//            if ( rollD(100) <= getfert(fertstart+yom) ) {
-//                var kid = new Object();
-//
-//                kid.parentId = formNodeId(spouse.pid);
-//                pid++;
-//                kid.pid = pid;
-//
-//                kid.gender=randgen();
-//                kid.name=getname(kid);
-//
-//                kid.byear=spouse.myear + yom;
-//                kid.dage=getdage();
-//                kid.dyear = kid.byear + kid.dage;
-//
-//                kid.mage = getmage(kid.gender);
-//                kid.myear = kid.byear + kid.mage;
-//
-//                kid.family = true;
-//
-//                if ((kid.myear > kid.dyear) || (rollD(100) <= RATE_bachelor)) {
-//                    kid.mage =null;
-//                    kid.myear =null;
-//                    kid.family =null;
-//                }
-//
-//                kid.ptype=goGetPType();
-//                kid.gencolor=newcolor;
-//
-//                debug("kid.pid:" + kid.pid);
-//                displayPerson(kid);
-//
-//                yom += rollD(2)+rollD(2)+rollD(2)-2;  // delay before trying for kid.
-//            }
-//            yom++;
-//        }
+        person.setChildredArray(childIDArray);
+        spouse.setChildredArray(childIDArray);
+
+        currentFamilyTreeCollection.put(spouse.getId(), spouse);
+        currentFamilyTreeCollection.put(person.getId(), person);
     }
 
     public LinkedHashMap<Integer, Person> returnCurrentFamilyTreeCollection() {
