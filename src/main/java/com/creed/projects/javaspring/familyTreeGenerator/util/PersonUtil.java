@@ -43,9 +43,22 @@ public class PersonUtil {
         return spousePersonObject;
     }
 
-//    public static Person createChild() {
-//
-//    }
+    public static Person createChild(final int fatherID, final int motherID, final int birthYear) {
+        Person childPersonObject = new Person();
+
+        childPersonObject.setId(PersonUtil.generateRandomID());
+        childPersonObject.setFName("");
+        childPersonObject.setLName("");
+        childPersonObject.setMoniker("");
+        childPersonObject.setGender(PersonUtil.getRandomGender());
+        childPersonObject.setBYear(birthYear);
+        childPersonObject.setDYear(0);
+
+        childPersonObject.setFatherID(fatherID);
+        childPersonObject.setMotherID(motherID);
+
+        return childPersonObject;
+    }
 
     //Secondary functions
 
@@ -54,7 +67,7 @@ public class PersonUtil {
         // women (who are likely to produce progeny) marry from age 13-21
         int marriedAge = rollDice(9) + 12;
 
-        if (gender.equals("MALE")) {
+        if ("MALE".equals(gender)) {
             for (int i = 0; i < 5; i++) {
                 marriedAge += rollDice(4) - 1;
             }
@@ -88,19 +101,9 @@ public class PersonUtil {
         int deathAge = 0;
 
         //Odds of death at age x
-//        if (deathChancePercentage < 5) {
-//            deathAge = randomAge;
-//        } else if (deathChancePercentage < 7) {
-//            deathAge = randomAge + 20;
-//        } else if (deathChancePercentage == 7) {
-//            deathAge = randomAge + 40;
-//        } else if (deathChancePercentage == 8) {
-//            deathAge = randomAge + 60;
-//        } else {
-//            //throw Exzception
-//        }
-
-        if (deathChancePercentage < 7) {
+        if (deathChancePercentage < 5) {
+            deathAge = randomAge;
+        } else if (deathChancePercentage < 7) {
             deathAge = randomAge + 20;
         } else if (deathChancePercentage == 7) {
             deathAge = randomAge + 40;
@@ -170,5 +173,45 @@ public class PersonUtil {
         int yearWhenRemarry = deathYear + yearsInGrief;
 
         return yearWhenRemarry;
+    }
+
+    /**
+     * Calculate fertility rate based on current age
+     * @param age
+     * @return
+     */
+    public static Integer getFertilityPercentage(final int age) {
+        int chance = 0;
+
+        if (age < 14) { chance = 10; }
+        if (age == 14) { chance = 20; }
+        if (age == 15) { chance = 40; }
+        if (age == 16) { chance = 60; }
+        if (age == 17) { chance = 80; }
+        if (age > 17 && age < 30) { chance = 98; }
+        if (age > 30 && age < 35) { chance = 80; }
+        if (age > 35 && age < 40) { chance = 40; }
+        if (age > 40 && age < 45) { chance = 20; }
+        if (age > 44) { chance = 3; }
+        if (age > 52) { chance = 1; }
+
+        return chance;
+    }
+
+    public static Gender getRandomGender() {
+        final int oddsResult = rollDice(2);
+        Gender gender;
+
+        switch (oddsResult) {
+            case 1:
+                gender = Gender.MALE;
+                break;
+            case 2:
+                gender = Gender.FEMALE;
+                break;
+            default: throw new IllegalArgumentException("A random gender can't be chosen");
+        }
+
+        return gender;
     }
 }
