@@ -12,11 +12,14 @@ import org.springframework.context.annotation.Configuration;
 public class FamilyTreeConfiguration {
 
     private Integer chanceIsBachelor;
+    private Integer chanceIsInfertile;
 
     @Autowired
-    FamilyTreeConfiguration(@Value("${initialize.familyTree.chanceIsBachelor}") Integer chanceIsBachelor) {
+    FamilyTreeConfiguration(@Value("4") Integer chanceIsBachelor,
+                            @Value("15") Integer chanceIsInfertile) {
                                 this.chanceIsBachelor = chanceIsBachelor;
-    }
+                                this.chanceIsInfertile = chanceIsInfertile;}
 
     public Integer getChanceIsBachelor() { return chanceIsBachelor; }
+    public Integer getChanceIsInfertile() { return chanceIsInfertile; }
 }

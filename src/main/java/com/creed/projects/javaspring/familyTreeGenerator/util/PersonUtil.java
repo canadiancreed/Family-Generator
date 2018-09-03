@@ -6,6 +6,8 @@ import com.creed.projects.javaspring.familyTreeGenerator.domain.Person;
 import java.util.LinkedHashMap;
 import java.util.Random;
 
+import static com.creed.projects.javaspring.familyTreeGenerator.common.Gender.MALE;
+
 /**
  * Contains all helper methods for populating Person related data
  */
@@ -24,17 +26,21 @@ public class PersonUtil {
         spousePersonObject.setGender(PersonUtil.getOppositeGender(partnerPersonObject.getGender()));
         spousePersonObject.setBYear(PersonUtil.generateBirthYear(marriedYear, spousePersonObject.getGender()));
 
-        //todo - Make code for generating married year - still needed?
+        spousePersonObject.setDYear(PersonUtil.useMarriedDataToGetDeathYear(marriedYear,
+                                                                marriedYear - spousePersonObject.getBYear(),
+                                                                            PersonUtil.generateDeathAge()));
 
-        spousePersonObject.setDYear(PersonUtil.generateDeathYear(marriedYear, marriedYear - spousePersonObject.getBYear()));
+        //todo - Do we really need to have IDs for people that don't exist?
+        spousePersonObject.setFatherID(0);
+        spousePersonObject.setMotherID(0);
 
-        if (partnerPersonObject.getFatherID() == 0 && partnerPersonObject.getMotherID() == 0) {
-            spousePersonObject.setFatherID(0);
-            spousePersonObject.setMotherID(0);
-        } else {
-            spousePersonObject.setFatherID(PersonUtil.generateRandomID());
-            spousePersonObject.setMotherID(PersonUtil.generateRandomID());
-        }
+//        if (partnerPersonObject.getFatherID() == 0 && partnerPersonObject.getMotherID() == 0) {
+//            spousePersonObject.setFatherID(0);
+//            spousePersonObject.setMotherID(0);
+//        } else {
+//            spousePersonObject.setFatherID(PersonUtil.generateRandomID());
+//            spousePersonObject.setMotherID(PersonUtil.generateRandomID());
+//        }
 
         currentSpouseArray.put(partnerPersonObject.getId(), marriedYear);
 
@@ -52,7 +58,7 @@ public class PersonUtil {
         childPersonObject.setMoniker("");
         childPersonObject.setGender(PersonUtil.getRandomGender());
         childPersonObject.setBYear(birthYear);
-        childPersonObject.setDYear(0);
+        childPersonObject.setDYear(birthYear + PersonUtil.generateDeathAge());
 
         childPersonObject.setFatherID(fatherID);
         childPersonObject.setMotherID(motherID);
@@ -67,7 +73,7 @@ public class PersonUtil {
         // women (who are likely to produce progeny) marry from age 13-21
         int marriedAge = rollDice(9) + 12;
 
-        if ("MALE".equals(gender)) {
+        if (gender.toString().equals("MALE")) {
             for (int i = 0; i < 5; i++) {
                 marriedAge += rollDice(4) - 1;
             }
@@ -85,11 +91,12 @@ public class PersonUtil {
      *
      * Revised makes it so 75% is random + 20 or less instead, removing 50% dead at married Age
      *
-     * @param marriedYear
-     * @param marriedAge
+//     * @param marriedYear
+//     * @param marriedAge
      * @return
      */
-    public static Integer generateDeathYear(final int marriedYear, final int marriedAge) {
+//    public static Integer generateDeathAge(final int marriedYear, final int marriedAge) {
+    public static Integer generateDeathAge() {
 
         final int temporaryOne = rollDice(20);
         final int temporaryTwo = rollDice(20);
@@ -113,17 +120,22 @@ public class PersonUtil {
             //throw Exzception
         }
 
-        if (deathAge < marriedAge) {
-            deathAge = marriedAge;
-        }
-
-        //todo - Not sure about this. Evaluate on non-married
-        final int deathYear = marriedYear + (deathAge - marriedAge);
-
-        return deathYear;
+        return deathAge;
     }
 
     //Utility functions that aren't core
+
+    public static int useMarriedDataToGetDeathYear(final int marriedYear, final int marriedAge, final int deathAge) {
+        int newDeathAge = 0;
+
+        if (deathAge < marriedAge) {
+            newDeathAge = marriedAge;
+        } else {
+            newDeathAge = deathAge;
+        }
+
+        return marriedYear + (newDeathAge - marriedAge);
+    }
 
     /**
      * Roll a D-sided dice, resulting in a number from 1 to D
@@ -157,7 +169,7 @@ public class PersonUtil {
 
         switch(gender.toString()) {			 // otherwise randomize it
             case "MALE": newgen = Gender.FEMALE;break;
-            case "FEMALE": newgen = Gender.MALE;break;
+            case "FEMALE": newgen = MALE;break;
             default: throw new IllegalArgumentException("Specify a valid gender");
         }
 
@@ -204,7 +216,7 @@ public class PersonUtil {
 
         switch (oddsResult) {
             case 1:
-                gender = Gender.MALE;
+                gender = MALE;
                 break;
             case 2:
                 gender = Gender.FEMALE;
