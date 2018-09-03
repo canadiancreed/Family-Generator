@@ -2,6 +2,7 @@ package com.creed.projects.javaspring.familyTreeGenerator;
 
 import com.creed.projects.javaspring.familyTreeGenerator.config.FamilyTreeConfiguration;
 import com.creed.projects.javaspring.familyTreeGenerator.config.PersonZeroConfiguration;
+import com.creed.projects.javaspring.familyTreeGenerator.domain.Person;
 import com.creed.projects.javaspring.familyTreeGenerator.util.FamilyTreeBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.Banner;
@@ -45,6 +46,14 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         for (Object value : ftb.returnCurrentFamilyTreeCollection().values()) {
             System.out.println(value.toString());
         }
+//        for (Person value : ftb.returnCurrentFamilyTreeCollection().values()) {
+//            System.out.println(value.toStringCSV());
+//        }
+//        for (Person value : ftb.returnCurrentFamilyTreeCollection().values()) {
+//            System.out.println(value.toStringAgeChildrenArray());
+//        }
+
+
 
         exit(applicationStatusCode);
     }

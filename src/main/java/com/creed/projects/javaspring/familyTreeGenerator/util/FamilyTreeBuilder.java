@@ -21,7 +21,7 @@ public class FamilyTreeBuilder {
     private Integer currentYear;
     private Integer stopAtYear;
 
-    private int currentPersonId;
+    private ArrayList<Integer> futureChildrenToProcessArray = new ArrayList<>();
 
     private LinkedHashMap<Integer, Person> currentFamilyTreeCollection = new LinkedHashMap<>();
 
@@ -36,28 +36,71 @@ public class FamilyTreeBuilder {
         this.ftc = ftc;
 
         //Create family for group zero
-        createPersonZero();
+        final int initialPersonId = createPersonZero();
 
-        final int personId = currentPersonId;
+        addSpouses(initialPersonId);
 
-        addSpouses();
+        final LinkedHashMap<Integer, Integer> initialPersonMarriedArray = currentFamilyTreeCollection.get(initialPersonId).getSpouseArray();
 
-        final LinkedHashMap<Integer, Integer> personMarriedArray = currentFamilyTreeCollection.get(personId).getSpouseArray();
-
-        personMarriedArray.forEach((spouseId, marriedYear) -> {
-            createChildren(currentFamilyTreeCollection.get(personId), currentFamilyTreeCollection.get(spouseId));
+        initialPersonMarriedArray.forEach((initialSpouseId, initialMarriedYear) -> {
+            createChildren(currentFamilyTreeCollection.get(initialPersonId), currentFamilyTreeCollection.get(initialSpouseId));
         });
 
-//        for ()
-//        createChildren();
+        boolean continueProcessing = true;
 
+        //todo - this is temporary for testing
+        stopAtYear = 0;
+
+        //Now create family tree branches
+        while (continueProcessing) {
+            final ArrayList<Integer> currentChildToProcessArray = new ArrayList<>(futureChildrenToProcessArray);
+
+            futureChildrenToProcessArray.clear();
+
+            currentChildToProcessArray.forEach((childID) -> {
+                final Person childObject = currentFamilyTreeCollection.get(childID);
+
+                boolean willMarry = true;
+
+                //Now to determine if they'll get married and have kids or not
+                if (ftc.getChanceIsBachelor() > rollDice(100)) {
+                    willMarry = false;
+                }
+
+                if ((childObject.getDYear() - childObject.getBYear()) < 14) {
+                    willMarry = false;
+                }
+
+                if (willMarry) {
+                    addSpouses(childID);
+
+                    final LinkedHashMap<Integer, Integer> personMarriedArray = currentFamilyTreeCollection.get(childID).getSpouseArray();
+
+                    personMarriedArray.forEach((spouseId, marriedYear) -> {
+                        if (ftc.getChanceIsInfertile() <= rollDice(100)) {
+                            createChildren(currentFamilyTreeCollection.get(childID), currentFamilyTreeCollection.get(spouseId));
+                        }
+                    });
+                }
+            });
+
+            //Check if both are not empty. If so, we need to check the stop year. If stop year is met, set to false.
+            if (!currentChildToProcessArray.isEmpty() && !futureChildrenToProcessArray.isEmpty()) {
+                if (stopAtYear == 10) { continueProcessing = false; }
+            } else {
+                continueProcessing = false;
+            }
+
+            //todo - here for testing
+            stopAtYear++;
+        }
 
     }
 
     /**
      *  Creates person zero, the root of this family tree
      */
-    public void createPersonZero() {
+    public int createPersonZero() {
         Person initialPersonObject = new Person();
 
         Gender gender = pzc.getGender().equals(Gender.MALE.toString()) ? Gender.FEMALE : Gender.MALE;
@@ -70,24 +113,26 @@ public class FamilyTreeBuilder {
         initialPersonObject.setBYear(pzc.getBirthYear());
         initialPersonObject.setDYear(pzc.getDeathYear());
 
-        currentPersonId = initialPersonObject.getId();
-
         currentFamilyTreeCollection.put(initialPersonObject.getId(), initialPersonObject);
 
         currentYear = pzc.getBirthYear();
         stopAtYear = pzc.getCurrentYear();
+
+        return initialPersonObject.getId();
     }
 
-    public void addSpouses() {
-        final Person initialPersonObject = currentFamilyTreeCollection.get(currentPersonId);
+    public void addSpouses(final int personID) {
+        final Person initialPersonObject = currentFamilyTreeCollection.get(personID);
 
         int marriedYear = 0;
 
         //todo - Test to see if this check for initial start couple can be broken?
         if (initialPersonObject.getFatherID() == 0 & initialPersonObject.getFatherID() == 0) {
             marriedYear = pzc.getMarriageYear();
-//        } else {
-//
+        } else {
+            //get random age between 14-26, then add to birthYear
+            int marriedAge = rollDice(4) + rollDice(4) + rollDice(4) + rollDice(4) + 10;
+            marriedYear = marriedAge + initialPersonObject.getBYear();
         }
 
         //Create temp array of spouseIDs
@@ -103,7 +148,7 @@ public class FamilyTreeBuilder {
             spouseIDArray.put(spousePersonObject.getId(), marriedYear);
 
             if (spousePersonObject.getDYear() < initialPersonObject.getDYear()) {
-                
+
                 //get mourningYears
                 newMarriedYear = PersonUtil.calculateYearsTillReMarriage(spousePersonObject.getDYear());
 
@@ -125,6 +170,8 @@ public class FamilyTreeBuilder {
 
     public void createChildren(final Person person, final Person spouse) {
 
+        final ArrayList<Integer> currentChildredIDArray = new ArrayList<>();
+
         final int yearMarriageEnds = person.getDYear() < spouse.getDYear() ? person.getDYear() : spouse.getDYear();
 
         final int numberOfYearsMarried = yearMarriageEnds - person.getSpouseArray().get(spouse.getId());
@@ -133,14 +180,26 @@ public class FamilyTreeBuilder {
         int fatherID;
         int motherID;
 
-        if (person.getGender().equals("FEMALE")) {
-            ageOfSpouseWhenMarried = Math.abs(person.getBYear()) + person.getSpouseArray().get(spouse.getId());
-            fatherID = spouse.getId();
-            motherID = person.getId();
+        if (person.getBYear() < 0 || spouse.getBYear() < 0) {
+            if (person.getGender().toString().equals("FEMALE")) {
+                ageOfSpouseWhenMarried = Math.abs(person.getBYear()) + person.getSpouseArray().get(spouse.getId());
+                fatherID = spouse.getId();
+                motherID = person.getId();
+            } else {
+                ageOfSpouseWhenMarried = Math.abs(spouse.getBYear()) + spouse.getSpouseArray().get(person.getId());
+                fatherID = person.getId();
+                motherID = spouse.getId();
+            }
         } else {
-            ageOfSpouseWhenMarried = Math.abs(spouse.getBYear()) + spouse.getSpouseArray().get(person.getId());
-            fatherID = person.getId();
-            motherID = spouse.getId();
+            if (person.getGender().toString().equals("FEMALE")) {
+                ageOfSpouseWhenMarried = person.getSpouseArray().get(spouse.getId()) - person.getBYear();
+                fatherID = spouse.getId();
+                motherID = person.getId();
+            } else {
+                ageOfSpouseWhenMarried = spouse.getSpouseArray().get(person.getId()) - spouse.getBYear();
+                fatherID = person.getId();
+                motherID = spouse.getId();
+            }
         }
 
         int yearsMarried = 0;
@@ -157,6 +216,8 @@ public class FamilyTreeBuilder {
                 childIDArray.add(childPersonObject.getId());
 
                 currentFamilyTreeCollection.put(childPersonObject.getId(), childPersonObject);
+
+                currentChildredIDArray.add(childPersonObject.getId());
             }
 
             yearsMarried++;
@@ -167,6 +228,8 @@ public class FamilyTreeBuilder {
 
         currentFamilyTreeCollection.put(spouse.getId(), spouse);
         currentFamilyTreeCollection.put(person.getId(), person);
+
+        futureChildrenToProcessArray.addAll(currentChildredIDArray);
     }
 
     public LinkedHashMap<Integer, Person> returnCurrentFamilyTreeCollection() {
