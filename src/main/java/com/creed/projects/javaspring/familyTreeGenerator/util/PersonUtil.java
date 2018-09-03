@@ -2,16 +2,140 @@ package com.creed.projects.javaspring.familyTreeGenerator.util;
 
 import com.creed.projects.javaspring.familyTreeGenerator.common.Gender;
 import com.creed.projects.javaspring.familyTreeGenerator.domain.Person;
-import com.creed.projects.javaspring.familyTreeGenerator.service.NameGeneratorService;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Random;
+
+import static com.creed.projects.javaspring.familyTreeGenerator.common.Gender.MALE;
 
 /**
  * Contains all helper methods for populating Person related data
  */
 public class PersonUtil {
+
+    //Primary functions
+
+    public static Person createSpouse(final Person partnerPersonObject, final Integer marriedYear) {
+        Person spousePersonObject = new Person();
+        LinkedHashMap<Integer, Integer> currentSpouseArray = new LinkedHashMap<>();
+
+        spousePersonObject.setId(PersonUtil.generateRandomID());
+        spousePersonObject.setFName("");
+        spousePersonObject.setLName("");
+        spousePersonObject.setMoniker("");
+        spousePersonObject.setGender(PersonUtil.getOppositeGender(partnerPersonObject.getGender()));
+        spousePersonObject.setBYear(PersonUtil.generateBirthYear(marriedYear, spousePersonObject.getGender()));
+
+        spousePersonObject.setDYear(PersonUtil.useMarriedDataToGetDeathYear(marriedYear,
+                                                                marriedYear - spousePersonObject.getBYear(),
+                                                                            PersonUtil.generateDeathAge()));
+
+        //todo - Do we really need to have IDs for people that don't exist?
+        spousePersonObject.setFatherID(0);
+        spousePersonObject.setMotherID(0);
+
+//        if (partnerPersonObject.getFatherID() == 0 && partnerPersonObject.getMotherID() == 0) {
+//            spousePersonObject.setFatherID(0);
+//            spousePersonObject.setMotherID(0);
+//        } else {
+//            spousePersonObject.setFatherID(PersonUtil.generateRandomID());
+//            spousePersonObject.setMotherID(PersonUtil.generateRandomID());
+//        }
+
+        currentSpouseArray.put(partnerPersonObject.getId(), marriedYear);
+
+        spousePersonObject.setSpouseArray(currentSpouseArray);
+
+        return spousePersonObject;
+    }
+
+    public static Person createChild(final int fatherID, final int motherID, final int birthYear) {
+        Person childPersonObject = new Person();
+
+        childPersonObject.setId(PersonUtil.generateRandomID());
+        childPersonObject.setFName("");
+        childPersonObject.setLName("");
+        childPersonObject.setMoniker("");
+        childPersonObject.setGender(PersonUtil.getRandomGender());
+        childPersonObject.setBYear(birthYear);
+        childPersonObject.setDYear(birthYear + PersonUtil.generateDeathAge());
+
+        childPersonObject.setFatherID(fatherID);
+        childPersonObject.setMotherID(motherID);
+
+        return childPersonObject;
+    }
+
+    //Secondary functions
+
+    public static Integer generateBirthYear(final int marriedYear, final Gender gender) {
+
+        // women (who are likely to produce progeny) marry from age 13-21
+        int marriedAge = rollDice(9) + 12;
+
+        if (gender.toString().equals("MALE")) {
+            for (int i = 0; i < 5; i++) {
+                marriedAge += rollDice(4) - 1;
+            }
+        }
+
+        int birthYear = marriedYear - marriedAge;
+
+        return birthYear;
+    }
+
+    /**
+     * Calculate Death Year by marriedYear and marriedAge
+     *
+     * The original breakdown was 50% dead at marriedAge, 12.5% for the rest. This leaves for a LOT of dead the same year they're married
+     *
+     * Revised makes it so 75% is random + 20 or less instead, removing 50% dead at married Age
+     *
+//     * @param marriedYear
+//     * @param marriedAge
+     * @return
+     */
+//    public static Integer generateDeathAge(final int marriedYear, final int marriedAge) {
+    public static Integer generateDeathAge() {
+
+        final int temporaryOne = rollDice(20);
+        final int temporaryTwo = rollDice(20);
+
+        int randomAge = (temporaryOne < temporaryTwo) ? temporaryOne : temporaryTwo;
+
+        int deathChancePercentage = rollDice(8);
+
+        int deathAge = 0;
+
+        //Odds of death at age x
+        if (deathChancePercentage < 5) {
+            deathAge = randomAge;
+        } else if (deathChancePercentage < 7) {
+            deathAge = randomAge + 20;
+        } else if (deathChancePercentage == 7) {
+            deathAge = randomAge + 40;
+        } else if (deathChancePercentage == 8) {
+            deathAge = randomAge + 60;
+        } else {
+            //throw Exzception
+        }
+
+        return deathAge;
+    }
+
+    //Utility functions that aren't core
+
+    public static int useMarriedDataToGetDeathYear(final int marriedYear, final int marriedAge, final int deathAge) {
+        int newDeathAge = 0;
+
+        if (deathAge < marriedAge) {
+            newDeathAge = marriedAge;
+        } else {
+            newDeathAge = deathAge;
+        }
+
+        return marriedYear + (newDeathAge - marriedAge);
+    }
 
     /**
      * Roll a D-sided dice, resulting in a number from 1 to D
@@ -35,92 +159,6 @@ public class PersonUtil {
     }
 
     /**
-     * Create a family for the particular person
-     *
-     * @param id
-     */
-    public static void createFamily(final long id) {
-    }
-
-    /**
-     * Crates a spouse object for the passed person object.
-     *
-     * @param spouseObject
-     * @param manualMarriageYear
-     * @return
-     */
-    public static Person createSpouse(final Person spouseObject, final Integer manualMarriageYear) {
-
-        LinkedHashMap<Integer, Integer> currentSpouseArray = new LinkedHashMap<>();
-        Person currentSpouse = new Person();
-        int marriedAge = 0;
-
-        final int marriedYear = manualMarriageYear == 0 ? getMarriageYear(spouseObject.getGender()) : manualMarriageYear;
-
-        currentSpouse.setId(PersonUtil.generateRandomID());
-        currentSpouse.setGender(PersonUtil.getOppositeGender(spouseObject.getGender()));
-        currentSpouse.setFName(NameGeneratorService.generateFirstName(spouseObject.getGender()));
-        currentSpouse.setLName(NameGeneratorService.generalLastName(spouseObject.getGender()));
-        currentSpouse.setMoniker("");
-        currentSpouse.setBYear(getBirthYear(marriedYear,currentSpouse.getGender()));
-
-        marriedAge = marriedYear - currentSpouse.getBYear();
-
-        int getDeathYear = getDeathAge(marriedAge) + currentSpouse.getBYear();
-
-        currentSpouse.setDYear(getDeathYear);
-        currentSpouse.setFatherID(0);
-        currentSpouse.setMotherID(0);
-
-        currentSpouseArray.put(spouseObject.getId(), marriedYear);
-
-        currentSpouse.setSpouseArray(currentSpouseArray);
-
-        return currentSpouse;
-    }
-
-    public static ArrayList<Person> createChildren(final Person maleSpouseObject, final Person femaleSpouseObject) {
-
-        ArrayList<Person> childredArray = new ArrayList<>();
-
-        int marriageYearEnd = 0;
-        int numberYearsMarried = 0;
-        int spouseAgeWhenMarried = 0;
-        int yearsOfMarriage = 0;
-
-        marriageYearEnd = maleSpouseObject.getDYear() < femaleSpouseObject.getDYear() ?
-                maleSpouseObject.getDYear() : femaleSpouseObject.getDYear();
-
-        numberYearsMarried = marriageYearEnd - femaleSpouseObject.getSpouseArray().get(maleSpouseObject.getId());
-
-        spouseAgeWhenMarried = femaleSpouseObject.getSpouseArray().get(maleSpouseObject.getId()) - femaleSpouseObject.getBYear();
-
-        while (yearsOfMarriage <= numberYearsMarried) {
-            if (PersonUtil.rollDice(100) <= PersonUtil.getFertilityByAge(spouseAgeWhenMarried)) {
-                Person child = new Person();
-
-                child.setId(PersonUtil.generateRandomID());
-                child.setGender(PersonUtil.getRandomGender());
-                child.setFName(NameGeneratorService.generateFirstName(child.getGender()));
-                child.setLName(NameGeneratorService.generalLastName(child.getGender()));
-                child.setMoniker("");
-                child.setBYear((marriageYearEnd - numberYearsMarried) + yearsOfMarriage);
-                child.setDYear(child.getBYear() + PersonUtil.getDeathAge(0));
-                child.setFatherID(maleSpouseObject.getId());
-                child.setMotherID(femaleSpouseObject.getId());
-
-                childredArray.add(child);
-            }
-
-            //Advance counter for next child. Minimum = 1, maximum = 6
-            yearsOfMarriage += rollDice(2) + rollDice(2) + rollDice(2) - 2;
-
-        }
-
-        return childredArray;
-    }
-
-    /**
      * Gets opposite gender for spouse
      *
      * @param gender
@@ -131,7 +169,7 @@ public class PersonUtil {
 
         switch(gender.toString()) {			 // otherwise randomize it
             case "MALE": newgen = Gender.FEMALE;break;
-            case "FEMALE": newgen = Gender.MALE;break;
+            case "FEMALE": newgen = MALE;break;
             default: throw new IllegalArgumentException("Specify a valid gender");
         }
 
@@ -139,121 +177,53 @@ public class PersonUtil {
     }
 
     /**
-     * Calculate birth year be taking married year and gender
-     *
-     * @param marriedYear
-     * @param gender
-     * @return
+     * Calculate years between spouse death and remarriage
      */
-    public static Integer getBirthYear(final Integer marriedYear, final Gender gender) {
-        Integer marriedAge;
-        Integer birthYear;
+    public static int calculateYearsTillReMarriage(final int deathYear) {
+        int yearsInGrief = rollDice(2) + rollDice(2) + rollDice(2) - 2;
 
-        //women (who are likely to produce progeny) marry from age 13-21
-        marriedAge = rollDice(9) + 12;
+        int yearWhenRemarry = deathYear + yearsInGrief;
 
-        // if male, potentially add a few years
-        if (gender.toString().equals("MALE")) {
-            for (int i = 0; i < 5; i++) {
-                marriedAge += rollDice(4) - 1;
-            }
-        }
-
-        birthYear = marriedYear - marriedAge;
-
-        return birthYear;
+        return yearWhenRemarry;
     }
 
     /**
-     * Get the age that this person will die
-     * 50% - DIes as child or teenager
-     * 25% - Dies in 20's or 30's
-     * 12.5% - Dies in 40's or 50's
-     * 12.5% - Dies in 60's or 70's
-     * todo - there's an issue where death age is less then married age with original code.
-     * todo - There's a lot where people die on marriage year. Should have it if marriedAge > teenager, there's different odds
-     *
-     * @param marriedAge - 0 if unmarried
+     * Calculate fertility rate based on current age
+     * @param age
      * @return
      */
-    public static Integer getDeathAge(final Integer marriedAge) {
-        Integer deathAge = 0;
+    public static Integer getFertilityPercentage(final int age) {
+        int chance = 0;
 
-        final int firstRandomRoll = rollDice(20);
-        final int secondRandomRoll = rollDice(20);
-
-        final int getLowerRandomRoll = firstRandomRoll < secondRandomRoll ? firstRandomRoll : secondRandomRoll;
-
-        final int percentage = rollDice(8);
-
-        if (percentage < 5) {  // 50% dies as a child or teenager
-            deathAge = getLowerRandomRoll;
-        } // this is to shape the prob curve of deaths
-        else if (percentage < 7) {
-            deathAge = firstRandomRoll + 20;  // 25% die in their 20-30's
-        }
-        else if (percentage == 7) { // 12.5% die in their 40-50's
-            deathAge = firstRandomRoll + 40;
-        }
-        else if (percentage == 8) { // 12.5% die in their 60-70's
-            deathAge = firstRandomRoll + 60;
-        }
-
-//        if (deathAge == marriedAge) {  // Generating spouse, so should be alive when married...
-//            while (deathAge < marriedAge) {   // if died before married, set to marriage.
-//                deathAge = marriedAge;
-//            }
-//        }
-
-        if (deathAge < marriedAge) {
-            deathAge = marriedAge;
-        }
-
-        return deathAge;
-    }
-
-    public static Integer getMarriageYear(final Gender gender) {
-       return Math.abs(getBirthYear(0,gender));
-    }
-
-    /**
-     * Get a random gender. Used when making kid records
-     * @return
-     */
-    public static Gender getRandomGender() { // random gender
-        return rollDice(6)<4 ? Gender.MALE : Gender.FEMALE;
-    }
-
-    /**
-     * Get chance of conceiving a child based on age
-     *
-     * @param spouseAgeWhenMarried
-     * @return
-     */
-    public static Integer getFertilityByAge(final Integer spouseAgeWhenMarried) {
-        Integer chance = 0;
-
-        if (spouseAgeWhenMarried < 14) { chance = 10; }
-        if (spouseAgeWhenMarried == 14) { chance = 20; }
-        if (spouseAgeWhenMarried == 15) { chance = 40; }
-        if (spouseAgeWhenMarried == 16) { chance = 60; }
-        if (spouseAgeWhenMarried == 17) { chance = 80; }
-        if (spouseAgeWhenMarried > 17 && spouseAgeWhenMarried < 30) { chance = 98; }
-        if (spouseAgeWhenMarried > 30 && spouseAgeWhenMarried < 35) { chance = 80; }
-        if (spouseAgeWhenMarried > 35 && spouseAgeWhenMarried < 40) { chance = 40; }
-        if (spouseAgeWhenMarried > 40 && spouseAgeWhenMarried < 45) { chance = 20; }
-        if (spouseAgeWhenMarried > 44) { chance = 3; }
-        if (spouseAgeWhenMarried > 52) { chance = 1; }
+        if (age < 14) { chance = 10; }
+        if (age == 14) { chance = 20; }
+        if (age == 15) { chance = 40; }
+        if (age == 16) { chance = 60; }
+        if (age == 17) { chance = 80; }
+        if (age > 17 && age < 30) { chance = 98; }
+        if (age > 30 && age < 35) { chance = 80; }
+        if (age > 35 && age < 40) { chance = 40; }
+        if (age > 40 && age < 45) { chance = 20; }
+        if (age > 44) { chance = 3; }
+        if (age > 52) { chance = 1; }
 
         return chance;
     }
 
-    /**
-     * Delay in remarrying after a spouses death
-     * @return - years
-     */
+    public static Gender getRandomGender() {
+        final int oddsResult = rollDice(2);
+        Gender gender;
 
-    public static Integer getGriefLength(final Integer startYear) {
-        return startYear + (rollDice(2) + rollDice(2) + rollDice(2) - 2);
+        switch (oddsResult) {
+            case 1:
+                gender = MALE;
+                break;
+            case 2:
+                gender = Gender.FEMALE;
+                break;
+            default: throw new IllegalArgumentException("A random gender can't be chosen");
+        }
+
+        return gender;
     }
 }

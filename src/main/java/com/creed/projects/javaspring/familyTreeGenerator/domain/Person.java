@@ -87,6 +87,32 @@ public class Person {
         sb.append(", spouseArray=").append(spouseArray);
         sb.append(", childrenArray=").append(childrenArray);
         sb.append('}');
+
+        return sb.toString();
+    }
+
+    public String toStringCSV() {
+        final StringBuffer sb = new StringBuffer("");
+        sb.append(id);
+        sb.append(", ").append(gender);
+        sb.append(", '").append(fName).append('\'');
+        sb.append(", '").append(lName).append('\'');
+        sb.append(", '").append(moniker).append('\'');
+        sb.append(", ").append(bYear);
+        sb.append(", ").append(dYear);
+        sb.append(", ").append(fatherID);
+        sb.append(", ").append(motherID);
+        sb.append(", ").append(spouseArray);
+        sb.append(", ").append(childrenArray);
+
+        return sb.toString();
+    }
+
+    public String toStringAgeChildrenArray() {
+        final StringBuffer sb = new StringBuffer("");
+        sb.append("Age: ").append(dYear - bYear);
+        sb.append(", Kids: ").append(childrenArray);
+
         return sb.toString();
     }
 }

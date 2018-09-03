@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.creed.projects.java.spring</groupId>
-    <artifactId>Family-Tree-Generator</artifactId>
+    <artifactId>Family-Tree-Generator-V2</artifactId>
     <packaging>jar</packaging>
     <version>2.0.0-SNAPSHOT</version>
 
@@ -44,4 +44,6 @@
             </plugin>
         </plugins>
     </build>
+
+
 </project>
