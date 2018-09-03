@@ -1,1 +1,1 @@
-Redid project from scratch as ccomplexity was starting to get rrediculous, including a fatal getSpouse bug.
+This application will create a family tree from scratch
