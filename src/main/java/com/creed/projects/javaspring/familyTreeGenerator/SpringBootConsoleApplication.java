@@ -43,9 +43,9 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
 //        //If it is, take IDs for children and build the next generation
 //        //Otherwise write to file and end program
 //
-        for (Object value : ftb.returnCurrentFamilyTreeCollection().values()) {
-            System.out.println(value.toString());
-        }
+//        for (Object value : ftb.returnCurrentFamilyTreeCollection().values()) {
+//            System.out.println(value.toString());
+//        }
 //        for (Person value : ftb.returnCurrentFamilyTreeCollection().values()) {
 //            System.out.println(value.toStringCSV());
 //        }

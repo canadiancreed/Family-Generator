@@ -92,8 +92,8 @@ public class Person {
     }
 
     public String toStringCSV() {
-        final StringBuffer sb = new StringBuffer("");
-        sb.append(id);
+        final StringBuffer sb = new StringBuffer();
+        sb.append(String.valueOf(id));
         sb.append(", ").append(gender);
         sb.append(", '").append(fName).append('\'');
         sb.append(", '").append(lName).append('\'');
@@ -104,6 +104,7 @@ public class Person {
         sb.append(", ").append(motherID);
         sb.append(", ").append(spouseArray);
         sb.append(", ").append(childrenArray);
+        sb.append(System.getProperty("line.separator"));
 
         return sb.toString();
     }

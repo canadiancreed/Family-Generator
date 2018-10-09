@@ -4,13 +4,14 @@ import com.creed.projects.javaspring.familyTreeGenerator.common.Gender;
 import com.creed.projects.javaspring.familyTreeGenerator.config.FamilyTreeConfiguration;
 import com.creed.projects.javaspring.familyTreeGenerator.config.PersonZeroConfiguration;
 import com.creed.projects.javaspring.familyTreeGenerator.domain.Person;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 
-import static com.creed.projects.javaspring.familyTreeGenerator.util.PersonUtil.createChild;
-import static com.creed.projects.javaspring.familyTreeGenerator.util.PersonUtil.createSpouse;
-import static com.creed.projects.javaspring.familyTreeGenerator.util.PersonUtil.rollDice;
+import static com.creed.projects.javaspring.familyTreeGenerator.util.PersonUtil.*;
 
 /**
  * This class builds and creates the entire family tree
@@ -22,13 +23,16 @@ public class FamilyTreeBuilder {
     private Integer stopAtYear;
 
     private ArrayList<Integer> futureChildrenToProcessArray = new ArrayList<>();
-
     private LinkedHashMap<Integer, Person> currentFamilyTreeCollection = new LinkedHashMap<>();
+    private LinkedHashMap<Integer, Person> processFamilyTreeMembers = new LinkedHashMap<>();
+
+    private Integer currentGeneration = 0;
 
     //todo- Autowiriing this directory won't work for some reason
     private final PersonZeroConfiguration pzc;
     private final FamilyTreeConfiguration ftc;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FamilyTreeBuilder.class);
 
     public FamilyTreeBuilder(final PersonZeroConfiguration pzc, final FamilyTreeConfiguration ftc) {
 
@@ -45,6 +49,9 @@ public class FamilyTreeBuilder {
         initialPersonMarriedArray.forEach((initialSpouseId, initialMarriedYear) -> {
             createChildren(currentFamilyTreeCollection.get(initialPersonId), currentFamilyTreeCollection.get(initialSpouseId));
         });
+
+        //Put the initial family in this array to process
+        processFamilyTreeMembers = new LinkedHashMap<>(currentFamilyTreeCollection);
 
         boolean continueProcessing = true;
 
@@ -86,15 +93,22 @@ public class FamilyTreeBuilder {
 
             //Check if both are not empty. If so, we need to check the stop year. If stop year is met, set to false.
             if (!currentChildToProcessArray.isEmpty() && !futureChildrenToProcessArray.isEmpty()) {
-                if (stopAtYear == 10) { continueProcessing = false; }
+                if (currentGeneration == 10) { continueProcessing = false; }
             } else {
                 continueProcessing = false;
             }
 
             //todo - here for testing
-            stopAtYear++;
-        }
+            //stopAtYear++;
 
+            //Compare what's in two different arrays. Any ids that exists in both are removed from current
+            //The person objects are then written to file.
+            //The person array is cleared
+            //The current ID arrays is then copied
+            writeUnusedPersonObjectsToFile();
+
+            if (currentGeneration == 10) { continueProcessing = false; }
+        }
     }
 
     /**
@@ -234,5 +248,32 @@ public class FamilyTreeBuilder {
 
     public LinkedHashMap<Integer, Person> returnCurrentFamilyTreeCollection() {
         return currentFamilyTreeCollection;
+    }
+
+    private void writeUnusedPersonObjectsToFile() {
+
+        //Get the keys from the currentFamilyTreeCollection, and extract the keys that dont match
+        final ArrayList<Integer> currentFamilyTreeCollectionKeySet = new ArrayList<Integer>(currentFamilyTreeCollection.keySet());
+
+        currentFamilyTreeCollectionKeySet.removeAll(new HashSet<>(futureChildrenToProcessArray));
+
+        PersonFileFileWriter.setFileName("test.csv");
+
+        PersonFileFileWriter.openConnection();
+
+        LOGGER.info("Saving generation " + currentGeneration + ".");
+
+        for (Integer ftcKey : currentFamilyTreeCollectionKeySet) {
+            PersonFileFileWriter.writeDataToFile(currentFamilyTreeCollection.get(ftcKey));
+            currentFamilyTreeCollection.remove(ftcKey);
+        }
+
+        PersonFileFileWriter.closeConnection();
+
+        currentFamilyTreeCollectionKeySet.clear();
+
+        LOGGER.info("Generation " + currentGeneration + " saved.");
+
+        currentGeneration++;
     }
 }
